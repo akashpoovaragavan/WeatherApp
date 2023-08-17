@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   FlatList,
   SafeAreaView,
   StyleSheet,
@@ -53,6 +54,24 @@ const WeatherScreen = () => {
       });
   };
 
+  const getWeatherHistory = () => {
+    axios
+      .get(`${BASE_URL}/history.json`, {
+        params: {
+          Key: API_KEY,
+          q: 'Chennai',
+          dt: '23-06-2023',
+          end_dt: '30-06-2023',
+        },
+      })
+      .then(response => {
+        setLong(response?.data?.forecast?.forecastday);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };
+
   useEffect(() => {
     getWeather();
     getLongWeather();
@@ -66,7 +85,7 @@ const WeatherScreen = () => {
     console.warn('A date has been picked: ', date);
     hideDatePicker();
   };
-  return (
+  return currentWeather && longWeather ? (
     <View style={styles.outerContainer}>
       <View style={styles.row}>
         <Text style={styles.textStyle}>{'Current Weather : '}</Text>
@@ -84,6 +103,7 @@ const WeatherScreen = () => {
       <View>
         <DatePicker
           modal
+          mode="date"
           open={showDialog}
           date={startdate}
           androidVariant="nativeAndroid"
@@ -102,6 +122,8 @@ const WeatherScreen = () => {
         keyExtractor={item => item.date}
       />
     </View>
+  ) : (
+    <ActivityIndicator size="large" color={'#AD3982'} />
   );
 };
 const styles = StyleSheet.create({
