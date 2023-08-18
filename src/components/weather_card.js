@@ -1,12 +1,6 @@
 import {StyleSheet, Text, View} from 'react-native';
 
 const WeatherCard = item => {
-  console.log(
-    'Long Render-->',
-    item?.item?.date,
-    '---',
-    item?.item?.day?.condition?.text,
-  );
   const formatDate = dateString => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
@@ -17,11 +11,11 @@ const WeatherCard = item => {
   let date = item?.item?.date;
   return (
     <View style={styles.row}>
-      <View style={styles.column}>
+      <View style={{...styles.column, flex: 0.5}}>
         <Text style={styles.textStyle}>{'Date'}</Text>
         <Text style={styles.textStyle}>{formatDate(date)}</Text>
       </View>
-      <View>
+      <View style={{...styles.column, flex: 0.5}}>
         <Text style={styles.textStyle}>{'Weather Report'}</Text>
         <Text style={styles.textStyleanswer}>
           {item?.item?.day?.condition?.text}
@@ -46,7 +40,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   row: {
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
     borderRadius: 10,
     elevation: 3,

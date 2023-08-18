@@ -10,16 +10,22 @@ import {
 import {useEffect, useState} from 'react';
 import axios from 'axios';
 import WeatherCard from '../components/weather_card';
-import DatePicker from 'react-native-date-picker';
+import RNDateTimePicker from '@react-native-community/datetimepicker';
+import dayjs from 'dayjs';
 
 const API_KEY = 'f14a23ef4a1e47e79cb60228231708';
 const BASE_URL = 'https://api.weatherapi.com/v1';
 const WeatherScreen = () => {
   const [currentWeather, setCurrentWeather] = useState('');
   const [longWeather, setLong] = useState();
-  const [startdate, setstartDate] = useState(new Date());
-  const [enddate, setendDate] = useState(new Date());
   const [showDialog, setDialog] = useState(false);
+  let enddate = new Date();
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth() + 1;
+  const day = currentDate.getDate();
+
+  //getCurrent Weather
 
   const getWeather = () => {
     axios
@@ -36,6 +42,8 @@ const WeatherScreen = () => {
         console.error('Error:', error);
       });
   };
+
+  //get next 14 days Weather
 
   const getLongWeather = () => {
     axios
@@ -54,21 +62,25 @@ const WeatherScreen = () => {
       });
   };
 
-  const getWeatherHistory = () => {
+  //get history of Weather
+
+  const getWeatherHistory = enddt => {
+    const currentFormatedDate = `${year}-0${month}-${day}`;
+    console.log('Post Data-->', currentFormatedDate, enddt);
     axios
       .get(`${BASE_URL}/history.json`, {
         params: {
           Key: API_KEY,
           q: 'Chennai',
-          dt: '23-06-2023',
-          end_dt: '30-06-2023',
+          dt: enddt,
+          end_dt: currentFormatedDate,
         },
       })
       .then(response => {
         setLong(response?.data?.forecast?.forecastday);
       })
       .catch(error => {
-        console.error('Error:', error);
+        console.error('Error:', error?.response);
       });
   };
 
@@ -77,14 +89,6 @@ const WeatherScreen = () => {
     getLongWeather();
   }, [currentWeather]);
 
-  const hideDatePicker = () => {
-    setDialog(false);
-  };
-
-  const handleConfirm = date => {
-    console.warn('A date has been picked: ', date);
-    hideDatePicker();
-  };
   return currentWeather && longWeather ? (
     <View style={styles.outerContainer}>
       <View style={styles.row}>
@@ -97,30 +101,31 @@ const WeatherScreen = () => {
           onPress={() => {
             setDialog(true);
           }}>
-          <Text style={styles.filtertextStyle}>{'Filter by date'}</Text>
+          <Text style={styles.filtertextStyle}>{'Filter by past dates'}</Text>
         </TouchableOpacity>
       </View>
-      <View>
-        <DatePicker
-          modal
-          mode="date"
-          open={showDialog}
-          date={startdate}
-          androidVariant="nativeAndroid"
-          onConfirm={date => {
-            setDialog(false);
-            setstartDate(date);
-          }}
-          onCancel={() => {
-            setDialog(false);
-          }}
-        />
-      </View>
+
       <FlatList
         data={longWeather}
         renderItem={({item}) => <WeatherCard item={item} />}
         keyExtractor={item => item.date}
       />
+      {showDialog && (
+        <View>
+          <RNDateTimePicker
+            value={enddate || new Date()}
+            maximumDate={currentDate}
+            mode="date"
+            onChange={date => {
+              setDialog(false);
+              enddate = dayjs(date?.nativeEvent?.timestamp).format(
+                'YYYY-MM-DD',
+              );
+              getWeatherHistory(enddate);
+            }}
+          />
+        </View>
+      )}
     </View>
   ) : (
     <ActivityIndicator size="large" color={'#AD3982'} />
